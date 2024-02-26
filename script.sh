@@ -9,8 +9,8 @@ read ESP
 mkfs.vfat -F32 -n "ESP" $ESP
 mkfs.ext4 -L "Arch-root" $ROOT
 
-mkdir -p /mnt/boot/efi
 mount $ROOT /mnt/
+mkdir -p /mnt/boot/efi
 mount $ESP /mnt/boot/efi/
 
 customize-pacman-conf() {
@@ -26,18 +26,21 @@ customize-pacman-conf() {
 }
 customize-pacman-conf /etc/pacman.conf
 
+echo
+echo "Updating mirrorlist... This might take some time"
 reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
-cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 pacman -Sy
+pacman -Fy
 pacstrap /mnt/ \
   base base-devel \
   linux-lts linux-firmware linux-lts-headers \
-  efibootmgr grub os-probe \
+  efibootmgr grub os-prober \
   exfat-utils \
   networkmanager \
   vi vim \
-  reflector \
+  reflector man-db \
   --noconfirm --needed
+cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 
 genfstab -U /mnt >> /mnt/etc/fstab
 
