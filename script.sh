@@ -10,6 +10,12 @@ echo
 echo -n Enter root password :
 read RTPASSWD
 
+echo
+echo -n Enter username:
+read USERNAME
+echo -n Enter passwword:
+read  PASSWORD
+
 mkfs.vfat -F32 -n "ESP" $ESP
 mkfs.ext4 -L "Arch-root" $ROOT
 
@@ -68,16 +74,12 @@ sed -i 's/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/' /etc/defa
 grub-install --bootloader-id=Arch --efi-directory=/boot/efi/ --target=x86_64-efi
 grub-mkconfig -o /boot/grub/grub.cfg
 
-echo
-echo Now, enter the root password...
 echo \"${RTPASSWD}\n${RTPASSWD}\n\" | passwd
+useradd -m -U -G wheel,network,scanner,power,audio,disk,input,video ${USERNAME}
+echo \"${PASSWORD}\n${PASSWORD}\n\" | passwd ${USERNAME}
 
 " > /mnt/afterscript.sh
 
 arch-chroot /mnt sh afterscript.sh
 
 rm /mnt/afterscript.sh
-
-echo
-echo Single-user system has been installed
-echo reboot to continue
