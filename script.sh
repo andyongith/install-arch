@@ -6,6 +6,10 @@ read ROOT
 echo -n EFI partition\(e.g. /dev/sda1\) : 
 read ESP
 
+echo
+echo -n Enter root password :
+read RTPASSWD
+
 mkfs.vfat -F32 -n "ESP" $ESP
 mkfs.ext4 -L "Arch-root" $ROOT
 
@@ -28,8 +32,8 @@ customize-pacman-conf /etc/pacman.conf
 
 echo
 echo "Updating mirrorlist... This might take some time"
-reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
-pacman -Sy
+reflector --latest 10 --sort rate --save /etc/pacman.d/mirrorlist
+pacman -Sy archlinux-keyring
 pacstrap /mnt/ \
   base base-devel \
   linux-lts linux-firmware linux-lts-headers \
@@ -66,8 +70,14 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 echo
 echo Now, enter the root password...
-passwd
+echo \"${RTPASSWD}\n${RTPASSWD}\n\" | passwd
 
 " > /mnt/afterscript.sh
 
 arch-chroot /mnt sh afterscript.sh
+
+rm /mnt/afterscript.sh
+
+echo
+echo Single-user system has been installed
+echo reboot to continue
