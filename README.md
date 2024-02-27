@@ -4,8 +4,8 @@ As the name suggests this is an installation-script for Arch linux.
 
 ## How to use?
 To use this script in the live installation-environment, first make 2 partitions:    
- * root partition where yours OS'll be installed (preferred size >= 20MiB)
- * efi partiotion where your Bootloader will be installed (preferred size = 1Gib) 
+ * root partition where your OS'll be installed (preferred size >= 20MiB)
+ * efi partiotion where your Bootloader will be installed (preferred size = 1GiB) 
 
 and then run the following commands...
 ```
