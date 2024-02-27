@@ -30,7 +30,6 @@ echo
 echo "Updating mirrorlist... This might take some time"
 reflector --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Sy
-pacman -Fy
 pacstrap /mnt/ \
   base base-devel \
   linux-lts linux-firmware linux-lts-headers \
@@ -56,12 +55,12 @@ hwclock --systohc
 
 sed -i 's/#en_IN/en_IN/' /etc/locale.gen
 locale-gen
-echo \"LANG=en_IN.UTF-8\"
+echo \"LANG=en_IN.UTF-8\" >> /etc/locale.conf
 
-sed -i 's/#%wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/ /etc/sudoers
-sed -i 's/#%sudo ALL=(ALL:ALL) ALL/%sudo ALL=(ALL:ALL) ALL/ /etc/sudoers
+sed -i 's/# %wheel ALL=\(ALL:ALL\) ALL/%wheel ALL=\(ALL:ALL\) ALL/' /etc/sudoers
+sed -i 's/# %sudo/%sudo/' /etc/sudoers
 
-sed -i 's/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false'
+sed -i 's/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/' /etc/default/grub
 grub-install --bootloader-id=Arch --efi-directory=/boot/efi/ --target=x86_64-efi
 grub-mkconfig -o /boot/grub/grub.cfg
 
