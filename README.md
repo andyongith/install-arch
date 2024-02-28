@@ -18,4 +18,4 @@ chmod +x install-script.sh
 then enter the required fields, and you're good to go.
 
 ## To-do list(For me)
- * Fix the issue with uncommenting things
+ Nothing right now
