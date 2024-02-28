@@ -16,6 +16,10 @@ read USERNAME
 echo -n Enter password:
 read  PASSWORD
 
+echo
+echo -n Enter hostname:
+read HOSTNAME
+
 mkfs.vfat -F32 -n "ESP" $ESP
 mkfs.ext4 -L "Arch-root" $ROOT
 
@@ -68,10 +72,10 @@ sed -i 's/#en_IN/en_IN/' /etc/locale.gen
 locale-gen
 echo \"LANG=en_IN.UTF-8\" >> /etc/locale.conf
 
-grep '# %wheel' /etc/sudoers | grep -q -v 'NOPASSWD' && \\
-sed -i \"$\(grep -n '# %wheel' /etc/sudoers | grep -v 'NOPASSWD' | cut -d: -f1\)s/# //\" /etc/sudoers
-grep '# %sudo' /etc/sudoers | grep -q -v 'NOPASSWD' && \\
-sed -i \"$\(grep -n '# %sudo' /etc/sudoers | grep -v 'NOPASSWD' | cut -d: -f1\)s/# //\" /etc/sudoers
+grep '# %wheel' /etc/sudoers | grep -q -v 'NOPASSWD' &&
+sed -i \"\$(grep -n '# %wheel' /etc/sudoers | grep -v 'NOPASSWD' | cut -d: -f1)s/# //\" /etc/sudoers
+grep '# %sudo' /etc/sudoers | grep -q -v 'NOPASSWD' &&
+sed -i \"\$(grep -n '# %sudo' /etc/sudoers | grep -v 'NOPASSWD' | cut -d: -f1)s/# //\" /etc/sudoers
 
 sed -i 's/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/' /etc/default/grub
 grub-install --bootloader-id=Arch --efi-directory=/boot/efi/ --target=x86_64-efi
@@ -81,8 +85,14 @@ echo \"${RTPASSWD}\n${RTPASSWD}\n\" | passwd
 useradd -m -U -G wheel,network,scanner,power,audio,disk,input,video ${USERNAME}
 echo \"${PASSWORD}\n${PASSWORD}\n\" | passwd ${USERNAME}
 
+echo ${HOSTNAME} > /etc/hostname
+echo \"127.0.0.1 localhost ${HOSTNAME}\" >> /etc/hosts
+
 " > /mnt/afterscript.sh
 
 arch-chroot /mnt sh afterscript.sh
 
 rm /mnt/afterscript.sh
+
+umount /mnt/boot/efi
+umount /mnt
