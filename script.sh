@@ -13,7 +13,7 @@ read RTPASSWD
 echo
 echo -n Enter username:
 read USERNAME
-echo -n Enter passwword:
+echo -n Enter password:
 read  PASSWORD
 
 mkfs.vfat -F32 -n "ESP" $ESP
@@ -69,9 +69,9 @@ locale-gen
 echo \"LANG=en_IN.UTF-8\" >> /etc/locale.conf
 
 grep '# %wheel' /etc/sudoers | grep -q -v 'NOPASSWD' && \\
-sed -i \"$\(grep -n '# %wheel' /etc/sudoers | grep -v 'NOPASSWD' | cut -d: -f1)s/# //\" /etc/sudoers
+sed -i \"$\(grep -n '# %wheel' /etc/sudoers | grep -v 'NOPASSWD' | cut -d: -f1\)s/# //\" /etc/sudoers
 grep '# %sudo' /etc/sudoers | grep -q -v 'NOPASSWD' && \\
-sed -i \"$\(grep -n '# %sudo' /etc/sudoers | grep -v 'NOPASSWD' | cut -d: -f1)s/# //\" /etc/sudoers
+sed -i \"$\(grep -n '# %sudo' /etc/sudoers | grep -v 'NOPASSWD' | cut -d: -f1\)s/# //\" /etc/sudoers
 
 sed -i 's/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/' /etc/default/grub
 grub-install --bootloader-id=Arch --efi-directory=/boot/efi/ --target=x86_64-efi
