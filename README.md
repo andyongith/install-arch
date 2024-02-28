@@ -18,4 +18,4 @@ chmod +x install-script.sh
 then enter the required fields, and you're good to go.
 
 ## To-do list(For me)
- * add microcode package(intel-ucode, amd-ucode)
+ * Fix the issue with uncommenting things

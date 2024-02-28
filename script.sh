@@ -44,6 +44,7 @@ pacstrap /mnt/ \
   base base-devel \
   linux-lts linux-firmware linux-lts-headers \
   efibootmgr grub os-prober \
+  intel-ucode amd-ucode \
   exfat-utils \
   networkmanager \
   vi vim \
