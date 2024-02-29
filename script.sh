@@ -1,25 +1,125 @@
 #!/usr/bin/bash
 
-echo -n root partition\(e.g. /dev/sda2\) : 
-read ROOT
+### Taking User Inputs
+#
+all_partitions=($(blkid | cut -d: -f1))
+select_partition() {
+  for partition in "${all_partitions[@]}"
+  do
+    if $(echo "$@" | grep -q $partition)
+    then
+      avail_partitions=( "${avail_partitions[@]}" "" )
+    else
+      avail_partitions=( "${avail_partitions[@]}" "${partition}" )
+    fi
+  done
+  select partition in "${avail_partitions[@]}"
+  do
+    if [ -n "$partition" ]
+    then
+      echo ${partition}
+      break
+    fi
+  done
+}
 
-echo -n EFI partition\(e.g. /dev/sda1\) : 
-read ESP
+confirmed="no"
+while [ "$confirmed" != "yes" ]
+do
+  clear
+  echo "Choose EFI partition: "
+  ESP=$(select_partition)
+  echo
+  echo "Choose Root partition: "
+  ROOT=$(select_partition $ESP)
+  # echo
+  # echo "Choose Swap partition: "
+  # SWAP=$(select_partition $ESP $ROOT)
+  
+  clear
+  echo ESP: $ESP
+  echo root: $ROOT
+  # echo swap: $SWAP
+  echo
+  echo "Confirmed: "
+  select confirmed in "yes" "no"
+  do
+    if [ -n "$confirmed" ]
+    then
+      break
+    fi
+  done
+done
 
-echo
-echo -n Enter root password :
-read RTPASSWD
+confirmed="no"
+while [ $confirmed = "no" ]
+do
+  clear
+  echo -n "Enter root password: "
+  read RTPASSWD
+  echo
+  echo -n "Enter username: "
+  read USERNAME
+  echo -n "Enter password: "
+  read  PASSWORD
+  echo
+  echo -n "Enter hostname: "
+  read HOSTNAME
+  echo
+  echo "Confirmed: "
+  select confirmed in "yes" "no"
+  do
+    if [ -n "$confirmed" ]
+    then
+      break
+    fi
+  done
+done
 
-echo
-echo -n Enter username:
-read USERNAME
-echo -n Enter password:
-read  PASSWORD
 
-echo
-echo -n Enter hostname:
-read HOSTNAME
+confirmed="no"
+while [ $confirmed = "no" ]
+do
+  display_mgr=
+  setup_pkg=
+  extra_pkg=
+  clear
+  echo "Choose your GUI setup"
+  select setup in "My_setup(xorg gnome gnome-extra gdm)" "Minimal"
+  do
+    case $REPLY in
+      1)
+        display_mgr=gdm
+        setup_pkg=( xorg gnome gnome-extra gdm )
+        break
+        ;;
+      2)
+        break
+        ;;
+    esac
+  done
 
+  echo
+  echo "Extra packages to install(separated by white space): "
+  read extra_pkg
+
+  clear
+  echo display manager: $display_mgr
+  echo extra packages : ${setup_pkg[@]} ${extra_pkg[@]}
+  echo
+  echo "Confirmed: "
+  select confirmed in "yes" "no"
+  do
+    if [ -n "$confirmed" ]
+    then
+      break
+    fi
+  done
+done
+
+
+### Installation
+#
 mkfs.vfat -F32 -n "ESP" $ESP
 mkfs.ext4 -L "Arch-root" $ROOT
 
@@ -52,7 +152,8 @@ pacstrap /mnt/ \
   exfat-utils \
   networkmanager \
   vi vim \
-  reflector man-db \
+  reflector \
+  man-db git "${setup_pkg[@]}" "${extra_pkg[@]}" \
   --noconfirm --needed
 cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 
@@ -88,7 +189,14 @@ echo \"${PASSWORD}\n${PASSWORD}\n\" | passwd ${USERNAME}
 echo ${HOSTNAME} > /etc/hostname
 echo \"127.0.0.1 localhost ${HOSTNAME}\" >> /etc/hosts
 
+pacman -S --needed git base-devel && git clone https://aur.archlinux.org/yay-bin.git && cd yay-bin && makepkg -si
+
 " > /mnt/afterscript.sh
+
+if [ -n "${display_mgr}" ]
+then
+  echo "systemctl enable ${display_mgr}.service" >> /mnt/afterscript.sh
+fi
 
 arch-chroot /mnt sh afterscript.sh
 
