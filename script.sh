@@ -143,7 +143,7 @@ customize-pacman-conf /etc/pacman.conf
 echo
 echo "Updating mirrorlist... This might take some time"
 reflector --latest 10 --sort rate --save /etc/pacman.d/mirrorlist
-pacman -Sy -- noconfirm archlinux-keyring
+pacman -Sy --noconfirm archlinux-keyring
 pacstrap /mnt/ \
   base base-devel \
   linux-lts linux-firmware linux-lts-headers \
@@ -153,7 +153,7 @@ pacstrap /mnt/ \
   networkmanager \
   vi vim \
   reflector \
-  man-db git "${setup_pkg[@]}" "${extra_pkg[@]}" \
+  man-db git ${setup_pkg[@]} ${extra_pkg[@]} \
   --noconfirm --needed
 cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 
@@ -188,8 +188,6 @@ echo \"${PASSWORD}\n${PASSWORD}\n\" | passwd ${USERNAME}
 
 echo ${HOSTNAME} > /etc/hostname
 echo \"127.0.0.1 localhost ${HOSTNAME}\" >> /etc/hosts
-
-pacman -S --needed git base-devel && git clone https://aur.archlinux.org/yay-bin.git && cd yay-bin && makepkg -si
 
 " > /mnt/afterscript.sh
 
