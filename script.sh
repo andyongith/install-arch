@@ -2,121 +2,148 @@
 
 ### Taking User Inputs
 #
-all_partitions=($(blkid | cut -d: -f1))
-select_partition() {
-  for partition in "${all_partitions[@]}"
+function choose_from_menu()
+{
+  local prompt=$1 outvar=$2
+  shift; shift
+  local options=("$@") count=${#@} selected=0
+  local esc=$(echo -en "\e")
+  
+  echo $prompt
+  while true
   do
-    if $(echo "$@" | grep -q $partition)
+    local index=0
+    for opt in "${options[@]}"
+    do
+      if [[ $selected == $index ]]
+      then
+        echo -e " >$((index+1)) \e[7m$opt\e[0m"
+      else
+        echo "  $((index+1)) $opt"
+      fi
+      ((index+=1))
+    done
+    ##
+    local key0
+    local key
+    read -s -n1 key0
+    if [[ $key0 == "" ]]
     then
-      avail_partitions=( "${avail_partitions[@]}" "" )
-    else
-      avail_partitions=( "${avail_partitions[@]}" "${partition}" )
-    fi
-  done
-  select partition in "${avail_partitions[@]}"
-  do
-    if [ -n "$partition" ]
-    then
-      echo ${partition}
       break
+    elif [[ $key0 == $esc ]]
+    then
+      read -s -n2 key
+      if [[ $key == [A ]]
+      then
+        ((selected-=1))
+        [[ $selected -lt 0 ]] && ((selected = $count - 1))
+      elif [[ $key == [B ]]
+      then
+        ((selected+=1))
+        [[ $selected -ge $count ]] && selected=0
+      fi
     fi
+    echo -en "\e[${count}A"
   done
+
+  printf -v $outvar "${options[$selected]}"
+  REPLY=$(($selected+1))
 }
 
-confirmed="no"
-while [ "$confirmed" != "yes" ]
-do
-  clear
-  echo "Choose EFI partition: "
-  ESP=$(select_partition)
-  echo
-  echo "Choose Root partition: "
-  ROOT=$(select_partition $ESP)
-  # echo
-  # echo "Choose Swap partition: "
-  # SWAP=$(select_partition $ESP $ROOT)
-  
-  clear
-  echo ESP: $ESP
-  echo root: $ROOT
-  # echo swap: $SWAP
-  echo
-  echo "Confirmed: "
-  select confirmed in "yes" "no"
-  do
-    if [ -n "$confirmed" ]
-    then
-      break
-    fi
-  done
-done
+function show_all_vars() {
+  echo " ESP         : $ESP"
+  echo " ROOT        : $ROOT"
+  echo " USER_NAME   : $USER_NAME"
+  echo " PASSWORD    : $PASSWORD"
+  echo " RTPASSWD    : $RTPASSWD"
+  echo " HOST_NAME   : $HOST_NAME"
+  echo " display_mgr : $display_mgr"
+  echo " setup_pkg   : ${setup_pkg[@]}"
+  echo " extra_pkg   : ${extra_pkg[@]}"
+}
 
-confirmed="no"
-while [ $confirmed = "no" ]
-do
+function show_page {
   clear
-  echo -n "Enter root password: "
-  read RTPASSWD
+  show_all_vars
+  echo -------------------------------------------------------
   echo
+}
+
+function select_partitions() {
+  ESP=
+  ROOT=
+  show_page
+  all_partitions=($(blkid | cut -d: -f1 | sort))
+  choose_from_menu "Choose EFI partiton:" ESP ${all_partitions[@]}
+  show_page
+  choose_from_menu "Choose ROOT partiton:" ROOT ${all_partitions[@]/$ESP}
+}
+select_partitions
+
+function select_user_and_hostname() {
+  USER_NAME=
+  PASSWORD=
+  RTPASSWD=
+  HOST_NAME=
+  show_page
   echo -n "Enter username: "
-  read USERNAME
+  while [[ $USER_NAME == "" ]]; do read USER_NAME; done
   echo -n "Enter password: "
-  read  PASSWORD
+  while [[ $PASSWORD == "" ]]; do read PASSWORD; done
   echo
+  choose_from_menu "Do you want to have the same password as root" SAME_PASSWORD "yes" "no"
+  if [[ $SAME_PASSWORD == "yes" ]]
+  then
+    RTPASSWD=$PASSWORD
+  else
+    echo -n "Enter root password: "
+    while [[ $RTPASSWD == "" ]]; do read RTPASSWD; done
+  fi
+
+  show_page
   echo -n "Enter hostname: "
-  read HOSTNAME
-  echo
-  echo "Confirmed: "
-  select confirmed in "yes" "no"
-  do
-    if [ -n "$confirmed" ]
-    then
-      break
-    fi
-  done
-done
+  while [[ $HOST_NAME == "" ]]; do read HOST_NAME; done
+}
+select_user_and_hostname
 
-
-confirmed="no"
-while [ $confirmed = "no" ]
-do
+function select_gui_setup() {
   display_mgr=
   setup_pkg=
   extra_pkg=
-  clear
-  echo "Choose your GUI setup"
-  select setup in "My_setup(xorg gnome gnome-extra gdm)" "Minimal"
-  do
-    case $REPLY in
-      1)
-        display_mgr=gdm
-        setup_pkg=( xorg gnome gnome-extra gdm )
-        break
-        ;;
-      2)
-        break
-        ;;
-    esac
-  done
-
+  show_page
+  choose_from_menu "Choose your GUI setup" setup_pkg "xorg gnome gnome-extra gdm" "plasma-meta kde-applications-meta sddm" "Minimal"
+  case $REPLY in
+    1) display_mgr=gdm
+      ;;
+    2) display_mgr=sddm
+      ;;
+    *) setup_pkg=""
+      ;;
+  esac
+  setup_pkg=($setup_pkg)
   echo
   echo "Extra packages to install(separated by white space): "
   read extra_pkg
+}
+select_gui_setup
 
-  clear
-  echo display manager: $display_mgr
-  echo extra packages : ${setup_pkg[@]} ${extra_pkg[@]}
-  echo
-  echo "Confirmed: "
-  select confirmed in "yes" "no"
-  do
-    if [ -n "$confirmed" ]
-    then
-      break
-    fi
-  done
+while true
+do
+  show_page
+  choose_from_menu "Do you need any changes?" change_to_make "Partitions" "User and hostname" "GUI setup" "No, continue"
+  case $REPLY in
+    1) select_partitions
+      ;;
+    2) select_user_and_hostname
+      ;;
+    3) select_gui_setup
+      ;;
+    *) break
+      ;;
+  esac
 done
 
+show_page
 
 ### Installation
 #
@@ -183,11 +210,11 @@ grub-install --bootloader-id=Arch --efi-directory=/boot/efi/ --target=x86_64-efi
 grub-mkconfig -o /boot/grub/grub.cfg
 
 echo \"${RTPASSWD}\n${RTPASSWD}\n\" | passwd
-useradd -m -U -G wheel,network,scanner,power,audio,disk,input,video ${USERNAME}
-echo \"${PASSWORD}\n${PASSWORD}\n\" | passwd ${USERNAME}
+useradd -m -U -G wheel,network,scanner,power,audio,disk,input,video ${USER_NAME}
+echo \"${PASSWORD}\n${PASSWORD}\n\" | passwd ${USER_NAME}
 
-echo ${HOSTNAME} > /etc/hostname
-echo \"127.0.0.1 localhost ${HOSTNAME}\" >> /etc/hosts
+echo ${HOST_NAME} > /etc/hostname
+echo \"127.0.0.1 localhost ${HOST_NAME}\" >> /etc/hosts
 
 " > /mnt/afterscript.sh
 
