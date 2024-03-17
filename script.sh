@@ -140,7 +140,7 @@ BOOTLOADER_ID="Arch"
 function select_bootloader_id() {
   show_page
   BOOTLOADER_ID=
-  echo "Enter bootloader-id: "
+  echo -n "Enter bootloader-id: "
   while [[ $BOOTLOADER_ID == "" ]]; do read BOOTLOADER_ID; done
 }
 
