@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-pkg_i_use=(man-db git nerd-fonts $(pacman -Ssq noto-fonts) firefox kitty tmux ranger python-pillow tldr htop neofetch github-cli)
+pkg_i_use=(man-db git nerd-fonts noto-fonts noto-fonts-emoji noto-fonts-cjk noto-fonts-extra firefox kitty tmux ranger python-pillow tldr htop neofetch github-cli bitwarden telegram-desktop discord virtualbox vlc wget tar unrar)
 
 ### Taking User Inputs
 #
@@ -116,12 +116,9 @@ function select_gui_setup() {
   show_page
   choose_from_menu "Choose your GUI setup" setup_pkg "xorg gnome gnome-extra gdm" "xorg plasma-meta kde-applications-meta sddm" "Minimal"
   case $REPLY in
-    1) display_mgr=gdm
-      ;;
-    2) display_mgr=sddm
-      ;;
-    *) setup_pkg=()
-      ;;
+    1) display_mgr=gdm ;;
+    2) display_mgr=sddm ;;
+    *) setup_pkg=() ;;
   esac
   setup_pkg=($setup_pkg)
   echo
@@ -149,18 +146,12 @@ do
   show_page
   choose_from_menu "Do you need any changes?" change_to_make "Partitions" "User and hostname" "GUI setup" "bootloader-id" "Abort" "No, continue"
   case $REPLY in
-    1) select_partitions
-      ;;
-    2) select_user_and_hostname
-      ;;
-    3) select_gui_setup
-      ;;
-    4) select_bootloader_id
-      ;;
-    5) exit 1
-      ;;
-    *) break
-      ;;
+    1) select_partitions ;;
+    2) select_user_and_hostname ;;
+    3) select_gui_setup ;;
+    4) select_bootloader_id ;;
+    5) exit 1 ;;
+    *) break ;;
   esac
 done
 
@@ -197,7 +188,7 @@ pacstrap /mnt/ \
   linux-lts linux-firmware linux-lts-headers \
   efibootmgr grub os-prober \
   intel-ucode amd-ucode \
-  exfat-utils \
+  exfat-utils ntfs-3g \
   networkmanager \
   vi vim \
   reflector \
@@ -251,6 +242,7 @@ rm /mnt/afterscript.sh
 umount /mnt/boot/efi
 umount /mnt
 
+echo
 echo
 echo "I don't know why but for some reasons os-prober is not detecting windows OS"
 echo "So, you've to run the following command after restart"
