@@ -181,7 +181,7 @@ customize-pacman-conf /etc/pacman.conf
 
 echo
 echo "Updating mirrorlist... This might take some time"
-reflector --latest 10 --sort rate --save /etc/pacman.d/mirrorlist
+reflector -c IN --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Sy --noconfirm archlinux-keyring
 pacstrap /mnt/ \
   base base-devel \
