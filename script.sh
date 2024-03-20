@@ -196,6 +196,11 @@ pacstrap /mnt/ \
   --noconfirm --needed
 cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 
+dd if=/dev/zero of=/mnt/swapfile bs=1M count=3072 status=progress
+chmod 600 /mnt/swapfile
+mkswap /mnt/swapfile
+swapon /mnt/swapfile
+
 genfstab -U /mnt >> /mnt/etc/fstab
 
 customize-pacman-conf /mnt/etc/pacman.conf
