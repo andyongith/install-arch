@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-pkg_i_use=(man-db git nerd-fonts noto-fonts noto-fonts-emoji noto-fonts-cjk noto-fonts-extra firefox kitty tmux ranger python-pillow tldr htop neofetch github-cli bitwarden telegram-desktop discord virtualbox vlc wget tar unrar)
+pkg_i_use=(man-db git nerd-fonts noto-fonts noto-fonts-emoji noto-fonts-cjk noto-fonts-extra firefox kitty tmux ranger python-pillow tldr htop neofetch github-cli bitwarden telegram-desktop discord virtualbox vlc wget tar unrar bash-completion)
 
 ### Taking User Inputs
 #
