@@ -228,7 +228,7 @@ grub-install --bootloader-id=${BOOTLOADER_ID} --efi-directory=/boot/efi/ --targe
 grub-mkconfig -o /boot/grub/grub.cfg
 
 echo \"${RTPASSWD}\n${RTPASSWD}\n\" | passwd
-useradd -m -U -G wheel,network,scanner,power,audio,disk,input,video ${USER_NAME}
+useradd -m -U -G wheel,network,scanner,power,audio,disk,input,video,http ${USER_NAME}
 echo \"${PASSWORD}\n${PASSWORD}\n\" | passwd ${USER_NAME}
 
 echo ${HOST_NAME} > /etc/hostname
